@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmación de Bienestar</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CAF50">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { margin: 5px 0; padding: 5px; }
+    .bloque { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h2>Confirmación de Bienestar</h2>
+
+  <h3>Configurar Contacto 1</h3>
+  <div class="bloque">
+    <label>Número (ej. 346XXXXXXXX):</label><br>
+    <input id="numero1" type="text"><br>
+    <label>Mensaje:</label><br>
+    <input id="mensaje1" type="text" value="Estoy bien"><br>
+    <label>Horas (separadas por coma, ej. 09:00,14:00,21:00):</label><br>
+    <input id="horas1" type="text"><br>
+  </div>
+
+  <h3>Configurar Contacto 2</h3>
+  <div class="bloque">
+    <label>Número (ej. 346XXXXXXXX):</label><br>
+    <input id="numero2" type="text"><br>
+    <label>Mensaje:</label><br>
+    <input id="mensaje2" type="text" value="Todo va bien"><br>
+    <label>Horas (separadas por coma, ej. 10:00,15:00,22:00):</label><br>
+    <input id="horas2" type="text"><br>
+  </div>
+
+  <button onclick="guardarConfig()">Guardar Configuración</button>
+
+  <h3>Recordatorios</h3>
+  <div id="avisos"></div>
+
+<script>
+let config = JSON.parse(localStorage.getItem("config") || "[]");
+mostrarConfig();
+
+function guardarConfig() {
+  const numero1 = document.getElementById("numero1").value.trim();
+  const mensaje1 = document.getElementById("mensaje1").value.trim();
+  const horas1 = document.getElementById("horas1").value.split(",").map(h=>h.trim());
+
+  const numero2 = document.getElementById("numero2").value.trim();
+  const mensaje2 = document.getElementById("mensaje2").value.trim();
+  const horas2 = document.getElementById("horas2").value.split(",").map(h=>h.trim());
+
+  config = [];
+
+  if (numero1 && mensaje1 && horas1[0]) {
+    horas1.forEach(hora=>{
+      config.push({numero: numero1, mensaje: mensaje1, hora});
+    });
+  }
+
+  if (numero2 && mensaje2 && horas2[0]) {
+    horas2.forEach(hora=>{
+      config.push({numero: numero2, mensaje: mensaje2, hora});
+    });
+  }
+
+  localStorage.setItem("config", JSON.stringify(config));
+  mostrarConfig();
+}
+
+function mostrarConfig() {
+  const avisos = document.getElementById("avisos");
+  avisos.innerHTML = "";
+  config.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "bloque";
+    div.textContent = `A las ${c.hora} → ${c.numero}: "${c.mensaje}"`;
+    avisos.appendChild(div);
+  });
+}
+
+function revisarHoras() {
+  const ahora = new Date();
+  const horaActual = ahora.toTimeString().slice(0,5);
+  config.forEach(c => {
+    if (c.hora === horaActual) {
+      lanzarAviso(c);
+    }
+  });
+}
+
+function lanzarAviso(c) {
+  const url = `https://wa.me/${c.numero}?text=${encodeURIComponent(c.mensaje)}`;
+  if (Notification.permission === "granted") {
+    const noti = new Notification("Confirmación de Bienestar", {
+      body: `Enviar a ${c.numero}: ${c.mensaje}`
+    });
+    noti.onclick = () => window.open(url, "_blank");
+  } else {
+    alert(`Es hora de avisar a ${c.numero}`);
+    window.open(url, "_blank");
+  }
+}
+
+if (Notification.permission !== "granted") {
+  Notification.requestPermission();
+}
+
+setInterval(revisarHoras, 60000);
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>
