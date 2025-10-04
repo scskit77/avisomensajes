@@ -11,7 +11,7 @@
     --amarillo: #ffeb3b;
     --naranja: #ff9800;
     --naranja-oscuro: #e65100;
-    --fondo: #fff3e0;       /* color de fondo que combina con el naranja */
+    --fondo: #fff3e0;
     --sombra: rgba(0,0,0,0.15);
   }
   body {
@@ -77,12 +77,14 @@
 <body>
 <h2>Confirmación de Bienestar</h2>
 
-<!-- Agenda (oculta visualmente, pero funcional) -->
-<div id="bloqueAgenda" style="display:none">
-  <input id="nombreAgenda" placeholder="Nombre">
-  <input id="numeroAgenda" placeholder="Teléfono">
+<!-- Agenda visible solo para añadir nuevos contactos -->
+<div class="bloque">
+  <h3>Agregar Contacto a la Agenda</h3>
+  <label>Nombre</label>
+  <input id="nombreAgenda" placeholder="Ej. Mamá">
+  <label>Teléfono (ej. 346XXXXXXXX)</label>
+  <input id="numeroAgenda" placeholder="Ej. 346XXXXXXXX">
   <button onclick="agregarContacto()">Guardar contacto</button>
-  <div id="agendaLista"></div>
 </div>
 
 <div class="bloque">
@@ -119,7 +121,6 @@
 let config = JSON.parse(localStorage.getItem("config") || "[]");
 let agenda = JSON.parse(localStorage.getItem("agenda") || "[]");
 
-// ---- Configuración de contactos ----
 function guardarConfig() {
   const contacto1 = document.getElementById("select1").value;
   const contacto2 = document.getElementById("select2").value;
@@ -146,7 +147,6 @@ function guardarConfig() {
   mostrarConfig();
 }
 
-// ---- Mostrar configuración ----
 function mostrarConfig() {
   const avisos = document.getElementById("avisos");
   avisos.innerHTML = "";
@@ -157,7 +157,6 @@ function mostrarConfig() {
   });
 }
 
-// ---- Comprobación cada minuto ----
 function revisarHoras() {
   const ahora = new Date();
   const horaActual = ahora.toTimeString().slice(0,5);
@@ -166,7 +165,6 @@ function revisarHoras() {
   });
 }
 
-// ---- Notificación o apertura WhatsApp ----
 function lanzarAviso(c) {
   const url = `https://wa.me/${c.numero}?text=${encodeURIComponent(c.mensaje)}`;
   if (Notification.permission === "granted") {
@@ -181,20 +179,18 @@ function lanzarAviso(c) {
   }
 }
 
-// ---- Agenda (solo almacenamiento local, sin mostrar) ----
+// ---- Agenda (solo añadir contactos, sin mostrar lista) ----
 function agregarContacto(){
   const nombre = document.getElementById("nombreAgenda").value.trim();
   const numero = document.getElementById("numeroAgenda").value.trim();
-  if(!nombre || !numero){ return; }
+  if(!nombre || !numero){ alert("Faltan datos"); return; }
   agenda.push({nombre, numero});
   localStorage.setItem("agenda", JSON.stringify(agenda));
+  document.getElementById("nombreAgenda").value="";
+  document.getElementById("numeroAgenda").value="";
   cargarAgenda();
 }
-function borrarContacto(idx){
-  agenda.splice(idx,1);
-  localStorage.setItem("agenda", JSON.stringify(agenda));
-  cargarAgenda();
-}
+
 function cargarAgenda(){
   const sel1 = document.getElementById("select1");
   const sel2 = document.getElementById("select2");
