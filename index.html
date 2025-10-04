@@ -11,12 +11,12 @@
     --amarillo: #ffeb3b;
     --naranja: #ff9800;
     --naranja-oscuro: #e65100;
-    --gris-fondo: #fff8e1;
+    --fondo: #fff3e0;       /* color de fondo que combina con el naranja */
     --sombra: rgba(0,0,0,0.15);
   }
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: var(--gris-fondo);
+    background: var(--fondo);
     margin: 0;
     padding: 20px;
     color: #222;
@@ -64,57 +64,51 @@
     transition: background 0.2s;
   }
   button:hover { background: var(--naranja-oscuro); }
-  #agendaLista div {
-    padding: 6px 8px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
-  #agendaLista div span { color: #333; }
-  #agendaLista div button {
-    background: var(--amarillo);
-    color: #222;
-    padding: 4px 10px;
-    font-size: 12px;
+  @media(max-width:800px){
+    .fila{grid-template-columns:1fr;}
   }
 </style>
 </head>
 <body>
 <h2>Confirmación de Bienestar</h2>
 
-<div class="bloque">
-  <h3>Agenda de Contactos</h3>
-  <label>Nombre</label>
-  <input id="nombreAgenda" placeholder="Ej. Mamá">
-  <label>Teléfono</label>
-  <input id="numeroAgenda" placeholder="Ej. 346XXXXXXXX">
+<!-- Agenda (oculta visualmente, pero funcional) -->
+<div id="bloqueAgenda" style="display:none">
+  <input id="nombreAgenda" placeholder="Nombre">
+  <input id="numeroAgenda" placeholder="Teléfono">
   <button onclick="agregarContacto()">Guardar contacto</button>
-  <h4>Contactos guardados</h4>
   <div id="agendaLista"></div>
 </div>
 
 <div class="bloque">
-  <h3>Configurar Contacto 1</h3>
-  <label>Seleccionar de la agenda</label>
-  <select id="select1"></select>
-  <label>Mensaje</label>
-  <input id="mensaje1" value="Estoy bien">
-  <label>Horas (HH:MM separadas por coma)</label>
-  <input id="horas1" placeholder="09:00,14:00,21:00">
+  <h3>Configurar Contactos</h3>
+  <div class="fila">
+    <div>
+      <h4>Contacto 1</h4>
+      <label>Seleccionar de la agenda</label>
+      <select id="select1"></select>
+      <label>Mensaje</label>
+      <input id="mensaje1" value="Estoy bien">
+      <label>Horas (HH:MM separadas por coma)</label>
+      <input id="horas1" placeholder="09:00,14:00,21:00">
+    </div>
+    <div>
+      <h4>Contacto 2</h4>
+      <label>Seleccionar de la agenda</label>
+      <select id="select2"></select>
+      <label>Mensaje</label>
+      <input id="mensaje2" value="Todo va bien">
+      <label>Horas (HH:MM separadas por coma)</label>
+      <input id="horas2" placeholder="10:00,15:00,22:00">
+    </div>
+  </div>
+  <button onclick="guardarConfig()">Guardar Configuración</button>
 </div>
-
-<div class="bloque">
-  <h3>Configurar Contacto 2</h3>
-  <label>Seleccionar de la agenda</label>
-  <select id="select2"></select>
-  <label>Mensaje</label>
-  <input id="mensaje2" value="Todo va bien">
-  <label>Horas (HH:MM separadas por coma)</label>
-  <input id="horas2" placeholder="10:00,15:00,22:00">
-</div>
-
-<button onclick="guardarConfig()">Guardar Configuración</button>
 
 <div class="bloque">
   <h3>Recordatorios</h3>
@@ -125,6 +119,7 @@
 let config = JSON.parse(localStorage.getItem("config") || "[]");
 let agenda = JSON.parse(localStorage.getItem("agenda") || "[]");
 
+// ---- Configuración de contactos ----
 function guardarConfig() {
   const contacto1 = document.getElementById("select1").value;
   const contacto2 = document.getElementById("select2").value;
@@ -135,18 +130,15 @@ function guardarConfig() {
 
   config = [];
 
-  const num1 = contacto1 || "";
-  const num2 = contacto2 || "";
-
-  if (num1 && mensaje1 && horas1[0]) {
+  if (contacto1 && mensaje1 && horas1[0]) {
     horas1.forEach(hora=>{
-      config.push({numero: num1, mensaje: mensaje1, hora});
+      config.push({numero: contacto1, mensaje: mensaje1, hora});
     });
   }
 
-  if (num2 && mensaje2 && horas2[0]) {
+  if (contacto2 && mensaje2 && horas2[0]) {
     horas2.forEach(hora=>{
-      config.push({numero: num2, mensaje: mensaje2, hora});
+      config.push({numero: contacto2, mensaje: mensaje2, hora});
     });
   }
 
@@ -154,6 +146,7 @@ function guardarConfig() {
   mostrarConfig();
 }
 
+// ---- Mostrar configuración ----
 function mostrarConfig() {
   const avisos = document.getElementById("avisos");
   avisos.innerHTML = "";
@@ -164,6 +157,7 @@ function mostrarConfig() {
   });
 }
 
+// ---- Comprobación cada minuto ----
 function revisarHoras() {
   const ahora = new Date();
   const horaActual = ahora.toTimeString().slice(0,5);
@@ -172,6 +166,7 @@ function revisarHoras() {
   });
 }
 
+// ---- Notificación o apertura WhatsApp ----
 function lanzarAviso(c) {
   const url = `https://wa.me/${c.numero}?text=${encodeURIComponent(c.mensaje)}`;
   if (Notification.permission === "granted") {
@@ -186,43 +181,29 @@ function lanzarAviso(c) {
   }
 }
 
-// --- Agenda ---
+// ---- Agenda (solo almacenamiento local, sin mostrar) ----
 function agregarContacto(){
   const nombre = document.getElementById("nombreAgenda").value.trim();
   const numero = document.getElementById("numeroAgenda").value.trim();
-  if(!nombre || !numero){ alert("Faltan datos"); return; }
+  if(!nombre || !numero){ return; }
   agenda.push({nombre, numero});
   localStorage.setItem("agenda", JSON.stringify(agenda));
-  document.getElementById("nombreAgenda").value="";
-  document.getElementById("numeroAgenda").value="";
   cargarAgenda();
 }
-
 function borrarContacto(idx){
   agenda.splice(idx,1);
   localStorage.setItem("agenda", JSON.stringify(agenda));
   cargarAgenda();
 }
-
 function cargarAgenda(){
-  const lista = document.getElementById("agendaLista");
   const sel1 = document.getElementById("select1");
   const sel2 = document.getElementById("select2");
-  lista.innerHTML="";
   sel1.innerHTML="<option value=''>--Seleccionar--</option>";
   sel2.innerHTML="<option value=''>--Seleccionar--</option>";
-  agenda.forEach((a,i)=>{
-    const div=document.createElement("div");
-    div.innerHTML=`<span>${a.nombre} (${a.numero})</span>`;
-    const btn=document.createElement("button");
-    btn.textContent="Borrar";
-    btn.onclick=()=>borrarContacto(i);
-    div.appendChild(btn);
-    lista.appendChild(div);
-    // añadir a selects
+  agenda.forEach(a=>{
     const o1=document.createElement("option");
     o1.value=a.numero;
-    o1.textContent=a.nombre;
+    o1.textContent=a.nombre || a.numero;
     const o2=o1.cloneNode(true);
     sel1.appendChild(o1);
     sel2.appendChild(o2);
