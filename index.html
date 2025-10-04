@@ -1,68 +1,152 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Confirmación de Bienestar</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4CAF50">
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    input, button { margin: 5px 0; padding: 5px; }
-    .bloque { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
-  </style>
+<meta charset="UTF-8">
+<title>Confirmación de Bienestar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffb300">
+<style>
+  :root {
+    --amarillo: #ffeb3b;
+    --naranja: #ff9800;
+    --naranja-oscuro: #e65100;
+    --gris-fondo: #fff8e1;
+    --sombra: rgba(0,0,0,0.15);
+  }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--gris-fondo);
+    margin: 0;
+    padding: 20px;
+    color: #222;
+  }
+  h2 {
+    text-align: center;
+    background: linear-gradient(90deg, var(--naranja), var(--amarillo));
+    padding: 10px;
+    border-radius: 12px;
+    color: #222;
+    box-shadow: 0 2px 6px var(--sombra);
+  }
+  .bloque {
+    background: #fff;
+    border-left: 8px solid var(--naranja);
+    border-radius: 12px;
+    margin: 16px 0;
+    padding: 16px;
+    box-shadow: 0 3px 6px var(--sombra);
+  }
+  label {
+    font-weight: 600;
+    color: var(--naranja-oscuro);
+    display: block;
+    margin-top: 8px;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  button {
+    background: var(--naranja);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-top: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 2px 4px var(--sombra);
+    transition: background 0.2s;
+  }
+  button:hover { background: var(--naranja-oscuro); }
+  #agendaLista div {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #agendaLista div span { color: #333; }
+  #agendaLista div button {
+    background: var(--amarillo);
+    color: #222;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+</style>
 </head>
 <body>
-  <h2>Confirmación de Bienestar</h2>
+<h2>Confirmación de Bienestar</h2>
 
+<div class="bloque">
+  <h3>Agenda de Contactos</h3>
+  <label>Nombre</label>
+  <input id="nombreAgenda" placeholder="Ej. Mamá">
+  <label>Teléfono</label>
+  <input id="numeroAgenda" placeholder="Ej. 346XXXXXXXX">
+  <button onclick="agregarContacto()">Guardar contacto</button>
+  <h4>Contactos guardados</h4>
+  <div id="agendaLista"></div>
+</div>
+
+<div class="bloque">
   <h3>Configurar Contacto 1</h3>
-  <div class="bloque">
-    <label>Número (ej. 346XXXXXXXX):</label><br>
-    <input id="numero1" type="text"><br>
-    <label>Mensaje:</label><br>
-    <input id="mensaje1" type="text" value="Estoy bien"><br>
-    <label>Horas (separadas por coma, ej. 09:00,14:00,21:00):</label><br>
-    <input id="horas1" type="text"><br>
-  </div>
+  <label>Seleccionar de la agenda</label>
+  <select id="select1"></select>
+  <label>Mensaje</label>
+  <input id="mensaje1" value="Estoy bien">
+  <label>Horas (HH:MM separadas por coma)</label>
+  <input id="horas1" placeholder="09:00,14:00,21:00">
+</div>
 
+<div class="bloque">
   <h3>Configurar Contacto 2</h3>
-  <div class="bloque">
-    <label>Número (ej. 346XXXXXXXX):</label><br>
-    <input id="numero2" type="text"><br>
-    <label>Mensaje:</label><br>
-    <input id="mensaje2" type="text" value="Todo va bien"><br>
-    <label>Horas (separadas por coma, ej. 10:00,15:00,22:00):</label><br>
-    <input id="horas2" type="text"><br>
-  </div>
+  <label>Seleccionar de la agenda</label>
+  <select id="select2"></select>
+  <label>Mensaje</label>
+  <input id="mensaje2" value="Todo va bien">
+  <label>Horas (HH:MM separadas por coma)</label>
+  <input id="horas2" placeholder="10:00,15:00,22:00">
+</div>
 
-  <button onclick="guardarConfig()">Guardar Configuración</button>
+<button onclick="guardarConfig()">Guardar Configuración</button>
 
+<div class="bloque">
   <h3>Recordatorios</h3>
   <div id="avisos"></div>
+</div>
 
 <script>
 let config = JSON.parse(localStorage.getItem("config") || "[]");
-mostrarConfig();
+let agenda = JSON.parse(localStorage.getItem("agenda") || "[]");
 
 function guardarConfig() {
-  const numero1 = document.getElementById("numero1").value.trim();
+  const contacto1 = document.getElementById("select1").value;
+  const contacto2 = document.getElementById("select2").value;
   const mensaje1 = document.getElementById("mensaje1").value.trim();
-  const horas1 = document.getElementById("horas1").value.split(",").map(h=>h.trim());
-
-  const numero2 = document.getElementById("numero2").value.trim();
   const mensaje2 = document.getElementById("mensaje2").value.trim();
+  const horas1 = document.getElementById("horas1").value.split(",").map(h=>h.trim());
   const horas2 = document.getElementById("horas2").value.split(",").map(h=>h.trim());
 
   config = [];
 
-  if (numero1 && mensaje1 && horas1[0]) {
+  const num1 = contacto1 || "";
+  const num2 = contacto2 || "";
+
+  if (num1 && mensaje1 && horas1[0]) {
     horas1.forEach(hora=>{
-      config.push({numero: numero1, mensaje: mensaje1, hora});
+      config.push({numero: num1, mensaje: mensaje1, hora});
     });
   }
 
-  if (numero2 && mensaje2 && horas2[0]) {
+  if (num2 && mensaje2 && horas2[0]) {
     horas2.forEach(hora=>{
-      config.push({numero: numero2, mensaje: mensaje2, hora});
+      config.push({numero: num2, mensaje: mensaje2, hora});
     });
   }
 
@@ -75,7 +159,6 @@ function mostrarConfig() {
   avisos.innerHTML = "";
   config.forEach(c => {
     const div = document.createElement("div");
-    div.className = "bloque";
     div.textContent = `A las ${c.hora} → ${c.numero}: "${c.mensaje}"`;
     avisos.appendChild(div);
   });
@@ -85,9 +168,7 @@ function revisarHoras() {
   const ahora = new Date();
   const horaActual = ahora.toTimeString().slice(0,5);
   config.forEach(c => {
-    if (c.hora === horaActual) {
-      lanzarAviso(c);
-    }
+    if (c.hora === horaActual) lanzarAviso(c);
   });
 }
 
@@ -95,7 +176,8 @@ function lanzarAviso(c) {
   const url = `https://wa.me/${c.numero}?text=${encodeURIComponent(c.mensaje)}`;
   if (Notification.permission === "granted") {
     const noti = new Notification("Confirmación de Bienestar", {
-      body: `Enviar a ${c.numero}: ${c.mensaje}`
+      body: `Enviar a ${c.numero}: ${c.mensaje}`,
+      icon: "icon-192.png"
     });
     noti.onclick = () => window.open(url, "_blank");
   } else {
@@ -104,15 +186,55 @@ function lanzarAviso(c) {
   }
 }
 
-if (Notification.permission !== "granted") {
-  Notification.requestPermission();
+// --- Agenda ---
+function agregarContacto(){
+  const nombre = document.getElementById("nombreAgenda").value.trim();
+  const numero = document.getElementById("numeroAgenda").value.trim();
+  if(!nombre || !numero){ alert("Faltan datos"); return; }
+  agenda.push({nombre, numero});
+  localStorage.setItem("agenda", JSON.stringify(agenda));
+  document.getElementById("nombreAgenda").value="";
+  document.getElementById("numeroAgenda").value="";
+  cargarAgenda();
 }
 
+function borrarContacto(idx){
+  agenda.splice(idx,1);
+  localStorage.setItem("agenda", JSON.stringify(agenda));
+  cargarAgenda();
+}
+
+function cargarAgenda(){
+  const lista = document.getElementById("agendaLista");
+  const sel1 = document.getElementById("select1");
+  const sel2 = document.getElementById("select2");
+  lista.innerHTML="";
+  sel1.innerHTML="<option value=''>--Seleccionar--</option>";
+  sel2.innerHTML="<option value=''>--Seleccionar--</option>";
+  agenda.forEach((a,i)=>{
+    const div=document.createElement("div");
+    div.innerHTML=`<span>${a.nombre} (${a.numero})</span>`;
+    const btn=document.createElement("button");
+    btn.textContent="Borrar";
+    btn.onclick=()=>borrarContacto(i);
+    div.appendChild(btn);
+    lista.appendChild(div);
+    // añadir a selects
+    const o1=document.createElement("option");
+    o1.value=a.numero;
+    o1.textContent=a.nombre;
+    const o2=o1.cloneNode(true);
+    sel1.appendChild(o1);
+    sel2.appendChild(o2);
+  });
+}
+
+if (Notification.permission !== "granted") Notification.requestPermission();
 setInterval(revisarHoras, 60000);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
+cargarAgenda();
+mostrarConfig();
 </script>
 </body>
 </html>
